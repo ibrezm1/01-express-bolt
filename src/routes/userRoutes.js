@@ -2,11 +2,16 @@ const express = require('express');
 const { body, query } = require('express-validator');
 const userController = require('../controllers/userController');
 const { validateRequest } = require('../middleware/validateRequest');
+const { authenticateToken, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Create user
+// All routes require authentication
+router.use(authenticateToken);
+
+// Create user (admin only)
 router.post('/',
+  requireRole('admin'),
   [
     body('email').isEmail(),
     body('firstName').notEmpty(),
@@ -17,8 +22,9 @@ router.post('/',
   userController.createUser
 );
 
-// Update user
+// Update user (admin only)
 router.put('/:userId',
+  requireRole('admin'),
   [
     body('email').optional().isEmail(),
     body('firstName').optional(),
@@ -29,22 +35,25 @@ router.put('/:userId',
   userController.updateUser
 );
 
-// Unlock user
+// Unlock user (admin only)
 router.post('/:userId/unlock',
+  requireRole('admin'),
   userController.unlockUser
 );
 
-// Deprovision user
+// Deprovision user (admin only)
 router.post('/:userId/deprovision',
+  requireRole('admin'),
   userController.deprovisionUser
 );
 
-// Password unlock
+// Password unlock (admin only)
 router.post('/:userId/password-unlock',
+  requireRole('admin'),
   userController.passwordUnlock
 );
 
-// Search users with pagination
+// Search users (all authenticated users)
 router.get('/',
   [
     query('page').optional().isInt({ min: 1 }),
